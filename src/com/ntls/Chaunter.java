@@ -24,12 +24,27 @@ public class Chaunter {
     }
     
     
+    /**
+     * Prints the characters sorted in ascending order.
+     */
     public void print(){
-        Set<Map.Entry<Character, Integer>> entrySet = hashMap.entrySet();
-        entrySet.stream().forEach( (entrySet1) -> {
-            System.out.println( entrySet1.getKey() + " : " + entrySet1.getValue() );
-        }); 
+        Comparator<Map.Entry<Character, Integer>> compare = (o1, o2) -> o1.getKey() - o2.getKey();
+        printSorted(compare);
     }
+    
+    
+    public void printSortedByKey(boolean descending){
+        Comparator<Map.Entry<Character, Integer>> compare;
+        
+        if(descending){
+            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o2.getKey()- o1.getKey();
+        } else{
+            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o1.getKey() - o2.getKey();
+        }
+        
+        printSorted(compare);
+    }
+    
     
     /**
      * Prints the characters sorted by occurrence in descending order if true,
@@ -37,8 +52,7 @@ public class Chaunter {
      * 
      * @param descending 
      */
-    public void printSorted(boolean descending){
-        Set<Map.Entry<Character, Integer>> entrySet = hashMap.entrySet();
+    public void printSortedByValue(boolean descending){
         Comparator<Map.Entry<Character, Integer>> compare;
         
         if(descending){
@@ -47,13 +61,21 @@ public class Chaunter {
             compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o1.getValue() - o2.getValue();
         }
         
+        printSorted(compare);
+    }
+        
+    
+    private void printSorted(Comparator<Map.Entry<Character, Integer>> compare){
+        
+        Set<Map.Entry<Character, Integer>> entrySet = hashMap.entrySet();
+        
         entrySet.stream()
          .sorted(compare)
          .forEach((entrySet1) -> {
              System.out.println( entrySet1.getKey() + " : " + entrySet1.getValue() );
          });  
     }
-        
+    
     
     /**
      * Gets a Stream<String> with lines.
@@ -116,7 +138,8 @@ public class Chaunter {
         
         
         System.out.println("-----------------------");
-        //chaunter.print();
-        chaunter.printSorted(true);
+        chaunter.print();
+        System.out.println("-----------------------");
+        chaunter.printSortedByValue(true);
     }
 }
