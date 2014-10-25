@@ -1,9 +1,9 @@
 
 package com.ntls;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -13,33 +13,23 @@ import java.util.stream.Stream;
  */
 public class Chaunter {
 
-    ConcurrentHashMap<Character, Integer> hashMap;
-
+    private final Map<Character, Integer> map = new ConcurrentHashMap<>();
     
-    public Chaunter(){
-        hashMap = new ConcurrentHashMap<>();
-    }
-
+    private static final Comparator<Map.Entry<Character, Integer>> keyComparator
+            = (o1, o2) -> Character.compare(o1.getKey(), o2.getKey());
+    private static final Comparator<Map.Entry<Character, Integer>> valueComparator
+            = (o1, o2) -> Integer.compare(o1.getValue(), o2.getValue());
     
     /**
      * Prints the characters sorted in ascending order.
      */
     public void print(){
-        Comparator<Map.Entry<Character, Integer>> compare = (o1, o2) -> o1.getKey() - o2.getKey();
-        printSorted(compare);
+        printSorted(keyComparator, false); 
     }
 
     
     public void printSortedByKey(boolean descending){
-        Comparator<Map.Entry<Character, Integer>> compare;
-
-        if(descending){
-            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o2.getKey()- o1.getKey();
-        } else{
-            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o1.getKey() - o2.getKey();
-        }
-
-        printSorted(compare);
+        printSorted(keyComparator, descending); 
     }
 
     
@@ -50,27 +40,18 @@ public class Chaunter {
      * @param descending
      */
     public void printSortedByValue(boolean descending){
-        Comparator<Map.Entry<Character, Integer>> compare;
-
-        if(descending){
-            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o2.getValue() - o1.getValue();
-        } else{
-            compare = (Map.Entry<Character, Integer> o1, Map.Entry<Character, Integer> o2) -> o1.getValue() - o2.getValue();
-        }
-
-        printSorted(compare);
+        printSorted(valueComparator, descending);
     }
 
     
-    private void printSorted(Comparator<Map.Entry<Character, Integer>> compare){
+    private void printSorted(Comparator<Map.Entry<Character, Integer>> compare, boolean descending) {
+        compare = descending ? Collections.reverseOrder(compare) : compare;
         
-        Set<Map.Entry<Character, Integer>> entrySet = hashMap.entrySet();
-
-        entrySet.stream()
-                .sorted(compare)
-                .forEach((entrySet1) -> {
-                    System.out.println( entrySet1.getKey() + " : " + entrySet1.getValue() );
-                });
+        map.entrySet().stream()
+       .sorted(compare)
+       .forEach(entry ->
+               System.out.println(entry.getKey() + " : " + entry.getValue())
+       ); 
     }
 
     
@@ -82,13 +63,7 @@ public class Chaunter {
      * @param lines
      */
     public void countCharacters(Stream<String> lines){
-
-        lines.forEach((String line) -> {
-            for (int i = 0; i < line.length(); i++) {
-                hashMap.put( line.charAt(i), hashMap.getOrDefault(line.charAt(i), 1)+1 );
-            }
-        });
-
+        lines.parallel().forEach( line -> countCharacters(line) );
     }
 
     
@@ -101,19 +76,14 @@ public class Chaunter {
      * @param lines
      */
     public void countCharactersIgnoreCase(Stream<String> lines){
- 
-       lines.forEach((String line) -> {
-            for (int i = 0; i < line.length(); i++) {
-                hashMap.put( line.toLowerCase().charAt(i), hashMap.getOrDefault(line.toLowerCase().charAt(i), 1)+1 );
-            }
-        });
-
+       lines.parallel().forEach( line -> countCharacters(line.toLowerCase()) );
     }
     
     
     public void countCharacters(String line){
         for (int i = 0; i < line.length(); i++) {
-            hashMap.put( line.charAt(i), hashMap.getOrDefault(line.charAt(i), 1) + 1 );
+            char c = line.charAt(i);
+            map.compute(c, (k,v) -> v == null ? 1 : v + 1); 
         }
     }
 
